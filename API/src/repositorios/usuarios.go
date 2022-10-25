@@ -59,8 +59,8 @@ func (repositorio usuarios) Buscar(nomeOuNick string) ([]modelos.Usuario, error)
 			&usuario.ID,
 			&usuario.Nome,
 			&usuario.Nick,
-			usuario.Email,
-			usuario.CriadoEm,
+			&usuario.Email,
+			&usuario.CriadoEm,
 		); erro != nil {
 			return nil, erro
 		}
