@@ -113,13 +113,13 @@ func AtualizarUsuario(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if usuarioID != usuarioIDNoToken {
-		respostas.Erro(w, http.StatusForbidden, erro)
+		respostas.Erro(w, http.StatusForbidden, errors.New("Não é possivel atualizar um usuario que não seja o seu"))
 		return
 	}
 
 	corpoRequisicao, erro := io.ReadAll(r.Body)
 	if erro != nil {
-		respostas.Erro(w, http.StatusUnprocessableEntity, errors.New("Não é possivel atualizar um usuario que não seja o seu"))
+		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
 
@@ -156,6 +156,17 @@ func DeletarUsuario(w http.ResponseWriter, r *http.Request) {
 	usuarioID, erro := strconv.ParseUint(parametros["usuariosId"], 10, 64)
 	if erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	usuarioIDNoToken, erro := autenticacao.ExtrairUsuarioID(r)
+	if erro != nil{
+		respostas.Erro(w, http.StatusUnauthorized, erro)
+		return
+	}
+
+	if usuarioID != usuarioIDNoToken {
+		respostas.Erro(w, http.StatusForbidden, errors.New("Não é possivel deletar um usuario que não seja o seu"))
 		return
 	}
 
