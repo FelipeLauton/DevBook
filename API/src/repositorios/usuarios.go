@@ -6,15 +6,15 @@ import (
 	"fmt"
 )
 
-type usuarios struct {
+type Usuarios struct {
 	db *sql.DB
 }
 
-func NovoRepositorioDeUsuarios(db *sql.DB) *usuarios {
-	return &usuarios{db}
+func NovoRepositorioDeUsuarios(db *sql.DB) *Usuarios {
+	return &Usuarios{db}
 }
 
-func (repositorio usuarios) Criar(usuario modelos.Usuario) (uint64, error) {
+func (repositorio Usuarios) Criar(usuario modelos.Usuario) (uint64, error) {
 	statement, erro := repositorio.db.Prepare(
 		"insert into usuarios (nome, nick, email, senha) values(?, ?, ?, ?)",
 	)
@@ -36,7 +36,7 @@ func (repositorio usuarios) Criar(usuario modelos.Usuario) (uint64, error) {
 	return uint64(ultimoIDInserido), nil
 }
 
-func (repositorio usuarios) Buscar(nomeOuNick string) ([]modelos.Usuario, error) {
+func (repositorio Usuarios) Buscar(nomeOuNick string) ([]modelos.Usuario, error) {
 	nomeOuNick = fmt.Sprintf("%%%s%%", nomeOuNick)
 
 	linhas, erro := repositorio.db.Query(
@@ -71,7 +71,7 @@ func (repositorio usuarios) Buscar(nomeOuNick string) ([]modelos.Usuario, error)
 	return usuarios, nil
 }
 
-func (repositorio usuarios) BuscarPorID(ID uint64) (modelos.Usuario, error) {
+func (repositorio Usuarios) BuscarPorID(ID uint64) (modelos.Usuario, error) {
 	linhas, erro := repositorio.db.Query(
 		"select id, nome, nick, email, criadoEm from usuarios where id = ?",
 		ID,
@@ -97,7 +97,7 @@ func (repositorio usuarios) BuscarPorID(ID uint64) (modelos.Usuario, error) {
 	return usuario, nil
 }
 
-func (repositorio usuarios) Atualizar(ID uint64, usuario modelos.Usuario) error {
+func (repositorio Usuarios) Atualizar(ID uint64, usuario modelos.Usuario) error {
 	statement, erro := repositorio.db.Prepare(
 		"update usuarios set nome = ?, nick = ?, email = ? where id = ?",
 	)
@@ -113,7 +113,7 @@ func (repositorio usuarios) Atualizar(ID uint64, usuario modelos.Usuario) error 
 	return nil
 }
 
-func (repositorio usuarios) Deletar(ID uint64) error {
+func (repositorio Usuarios) Deletar(ID uint64) error {
 	statement, erro := repositorio.db.Prepare("delete from usuarios where id = ?")
 	if erro != nil {
 		return erro
@@ -127,7 +127,7 @@ func (repositorio usuarios) Deletar(ID uint64) error {
 	return nil
 }
 
-func (repositorio usuarios) BuscarPorEmail(email string) (modelos.Usuario, error) {
+func (repositorio Usuarios) BuscarPorEmail(email string) (modelos.Usuario, error) {
 	linha, erro := repositorio.db.Query("select id, senha from usuarios wehere email = ?", email)
 	if erro != nil {
 		return modelos.Usuario{}, erro
@@ -144,7 +144,7 @@ func (repositorio usuarios) BuscarPorEmail(email string) (modelos.Usuario, error
 	return usuario, nil
 }
 
-func (repositorio usuarios) Seguir(usuarioID, seguidorID uint64) error {
+func (repositorio Usuarios) Seguir(usuarioID, seguidorID uint64) error {
 	statement, erro := repositorio.db.Prepare(
 		"insert ignore into seguidores (usuario_id) values (?, ?)",
 	)
@@ -160,7 +160,7 @@ func (repositorio usuarios) Seguir(usuarioID, seguidorID uint64) error {
 	return nil
 }
 
-func (repositorio usuarios) PararDeSeguir(usuarioID, seguidorID uint64) error {
+func (repositorio Usuarios) PararDeSeguir(usuarioID, seguidorID uint64) error {
 	statement, erro := repositorio.db.Prepare(
 		"delete from seguidores where usuario_id = ? and seguidor_id = ?",
 	)
@@ -175,7 +175,7 @@ func (repositorio usuarios) PararDeSeguir(usuarioID, seguidorID uint64) error {
 	return nil
 }
 
-func (repositorio usuarios) BuscarSeguidores(usuarioID uint64) ([]modelos.Usuario, error) {
+func (repositorio Usuarios) BuscarSeguidores(usuarioID uint64) ([]modelos.Usuario, error) {
 	linhas, erro := repositorio.db.Query(`
 		select u.id, u.nome, u.nick, u.email, u.criadoEm
 		from usuarios u inner join seguidores s on u.id = s.seguidor_id where s.usuario_id = ?
@@ -186,7 +186,7 @@ func (repositorio usuarios) BuscarSeguidores(usuarioID uint64) ([]modelos.Usuari
 	defer linhas.Close()
 
 	var usuarios []modelos.Usuario
-	for linhas.Next(){
+	for linhas.Next() {
 		var usuario modelos.Usuario
 
 		if erro = linhas.Scan(
@@ -205,7 +205,7 @@ func (repositorio usuarios) BuscarSeguidores(usuarioID uint64) ([]modelos.Usuari
 	return usuarios, nil
 }
 
-func (repositorio usuarios) BuscarSeguindo(usuarioID uint64) ([]modelos.Usuario, error) {
+func (repositorio Usuarios) BuscarSeguindo(usuarioID uint64) ([]modelos.Usuario, error) {
 	linhas, erro := repositorio.db.Query(`
 		select u.id, u.nome, u.nick, u.email, u.criadoEm
 		from usuarios u inner join seguidores s on u.id = s.usuario_id where s.seguidor_id = ?`,
@@ -218,7 +218,7 @@ func (repositorio usuarios) BuscarSeguindo(usuarioID uint64) ([]modelos.Usuario,
 
 	var usuarios []modelos.Usuario
 
-	for linhas.Next(){
+	for linhas.Next() {
 		var usuario modelos.Usuario
 
 		if erro = linhas.Scan(
@@ -237,7 +237,7 @@ func (repositorio usuarios) BuscarSeguindo(usuarioID uint64) ([]modelos.Usuario,
 	return usuarios, nil
 }
 
-func (repositorio usuarios) BuscarSenha(usuarioID uint64) (string, error) {
+func (repositorio Usuarios) BuscarSenha(usuarioID uint64) (string, error) {
 	linha, erro := repositorio.db.Query("select senha from usuarios where id = ?", usuarioID)
 	if erro != nil {
 		return "", erro
@@ -246,16 +246,16 @@ func (repositorio usuarios) BuscarSenha(usuarioID uint64) (string, error) {
 
 	var usuario modelos.Usuario
 
-	if linha.Next(){
+	if linha.Next() {
 		if erro = linha.Scan(&usuario.Senha); erro != nil {
-			return "", erro	
+			return "", erro
 		}
 	}
 
 	return usuario.Senha, nil
 }
 
-func (repositorio usuarios) AtualizarSenha(usuarioID uint64, senha string) error {
+func (repositorio Usuarios) AtualizarSenha(usuarioID uint64, senha string) error {
 	statement, erro := repositorio.db.Prepare("update usuarios set senha = ? where id = ?")
 	if erro != nil {
 		return erro
@@ -268,4 +268,3 @@ func (repositorio usuarios) AtualizarSenha(usuarioID uint64, senha string) error
 
 	return nil
 }
-
