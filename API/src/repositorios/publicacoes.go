@@ -86,7 +86,7 @@ func (repositorio Publicacoes) Buscar(usuarioID uint64) ([]modelos.Publicacao, e
 	for linhas.Next() {
 
 		var publicacao modelos.Publicacao
-		
+
 		if erro = linhas.Scan(
 			&publicacao.ID,
 			&publicacao.Titulo,
@@ -150,7 +150,7 @@ func (repositorio Publicacoes) BuscarPorUsuario(usuarioID uint64) ([]modelos.Pub
 	for linhas.Next() {
 
 		var publicacao modelos.Publicacao
-		
+
 		if erro = linhas.Scan(
 			&publicacao.ID,
 			&publicacao.Titulo,
@@ -175,6 +175,26 @@ func (repositorio Publicacoes) Curtir(publicacaoID uint64) error {
 		return erro
 	}
 	defer statement.Close()
+
+	if _, erro = statement.Exec(publicacaoID); erro != nil {
+		return erro
+	}
+
+	return nil
+}
+
+func (repositorio Publicacoes) Descurtir(publicacaoID uint64) error {
+	statement, erro := repositorio.db.Prepare(`
+		update publicacoes set curtidas =
+		CASE 
+			WHEN curtidas > 0 THEN curtidas - 1
+			ELSE 0
+		END
+		where id = ?
+	`)
+	if erro != nil {
+		return erro
+	}
 
 	if _, erro = statement.Exec(publicacaoID); erro != nil {
 		return erro
